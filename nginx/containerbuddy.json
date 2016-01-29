@@ -1,0 +1,35 @@
+{
+  "consul": "consul:8500",
+  "onStart": [
+    "consul-template", "-once", "-consul", "consul:8500", "-template",
+    "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/conf.d/default.conf:nginx -s reload"
+  ],
+  "services": [
+    {
+      "name": "nginx",
+      "port": 80,
+      "interfaces": ["eth1", "eth0"],
+      "health": "/usr/bin/curl --fail -s http://localhost/health",
+      "poll": 10,
+      "ttl": 25
+    }
+  ],
+  "backends": [
+    {
+      "name": "sales",
+      "poll": 3,
+      "onChange": [
+        "consul-template", "-once", "-consul", "consul:8500", "-template",
+        "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/conf.d/default.conf:nginx -s reload"
+      ]
+    },
+    {
+      "name": "customers",
+      "poll": 4,
+      "onChange": [
+        "consul-template", "-once", "-consul", "consul:8500", "-template",
+        "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/conf.d/default.conf:nginx -s reload"
+      ]
+    }
+  ]
+}
