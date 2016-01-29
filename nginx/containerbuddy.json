@@ -2,7 +2,7 @@
   "consul": "consul:8500",
   "onStart": [
     "consul-template", "-once", "-consul", "consul:8500", "-template",
-    "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/conf.d/default.conf:nginx -s reload"
+    "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/nginx.conf:nginx -s reload"
   ],
   "services": [
     {
@@ -20,7 +20,7 @@
       "poll": 3,
       "onChange": [
         "consul-template", "-once", "-consul", "consul:8500", "-template",
-        "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/conf.d/default.conf:nginx -s reload"
+        "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/nginx.conf:nginx -s reload"
       ]
     },
     {
@@ -28,7 +28,7 @@
       "poll": 4,
       "onChange": [
         "consul-template", "-once", "-consul", "consul:8500", "-template",
-        "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/conf.d/default.conf:nginx -s reload"
+        "/etc/containerbuddy/nginx.conf.ctmpl:/etc/nginx/nginx.conf:nginx -s reload"
       ]
     }
   ]
