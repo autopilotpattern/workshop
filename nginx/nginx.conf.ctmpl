@@ -1,3 +1,4 @@
+{{ if service "customers" }}
 upstream customers {
     # write the address:port pairs for each healthy Customers node
     {{range service "customers"}}
@@ -5,7 +6,9 @@ upstream customers {
     {{end}}
     least_conn;
 }
+{{ end }}
 
+{{ if service "sales" }}
 upstream sales {
     # write the address:port pairs for each healthy Sales node
     {{range service "sales"}}
@@ -13,6 +16,7 @@ upstream sales {
     {{end}}
     least_conn;
 }
+{{ end }}
 
 server {
     listen       80;
@@ -27,19 +31,20 @@ server {
         deny all;
     }
 
+    {{ if service "customers" }}
     location ^~ /customers {
         # strip '/customers' from the request before passing
         # it along to the Customers upstream
         rewrite ^/customers(/.*)$ $1 break;
         proxy_pass http://customers;
         proxy_redirect off;
-    }
-
+    }{{end}}
+    {{ if service "sales" }}
     location ^~ /sales {
         # strip '/sales' from the request before passing
         # it along to the Sales upstream
         rewrite ^/sales(/.*)$ $1 break;
         proxy_pass http://sales;
         proxy_redirect off;
-    }
+    }{{end}}
 }

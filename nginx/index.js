@@ -1,8 +1,12 @@
+// provide empty data when upstream services are not available
 var dummy = [{
     company: "Data not available",
     rep: "Data not available",
+    client: "N/A",
+    territory: "N/A",
     phone: "N/A",
-    location: "N/A"
+    location: "N/A",
+    source: "N/A"
 }];
 
 var fillCustomerTable = function(rows) {
