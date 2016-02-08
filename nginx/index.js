@@ -9,32 +9,40 @@ var dummy = [{
     source: "N/A"
 }];
 
-var fillCustomerTable = function(rows) {
-    var html = "";
-    for (var i = 0; i < rows.length; i++) {
-        html+="<tr>";
-        html+="<td>"+rows[i].company+"</td>";
-        html+="<td>"+rows[i].location+"</td>";
-        html+="<td>"+rows[i].rep+"</td>";
-        html+="<td>"+rows[i].source+"</td>";
 
-        html+="</tr>";
+var trFromRow = function(rowData, keys) {
+    var row = document.createElement('tr');
+    for (var k = 0; k < keys.length; k++) {
+        var td = document.createElement('td');
+        td.textContent = rowData[keys[k]];
+        row.appendChild(td);
     }
-    document.getElementById("customerTable").innerHTML = html;
+    return row;
+}
+
+var fillCustomerTable = function(rows) {
+    var body = document.getElementById("customerTable");
+    while (body.lastChild) {
+        body.removeChild(body.lastChild);
+    }
+    for (var i = 0; i < rows.length; i++){
+        var tr = trFromRow(rows[i],
+                           ["company", "location", "rep", "source"]);
+        body.appendChild(tr);
+    }
 }
 
 var fillSalesTable = function(rows) {
-    var html = "";
-    for (var i = 0; i < rows.length; i++) {
-        html+="<tr>";
-        html+="<td>"+rows[i].rep+"</td>";
-        html+="<td>"+rows[i].client+"</td>";
-        html+="<td>"+rows[i].phone+"</td>";
-        html+="<td>"+rows[i].territory+"</td>";
-        html+="<td>"+rows[i].source+"</td>";
-        html+="</tr>";
+    var body = document.getElementById("salesRepTable");
+    while (body.lastChild) {
+        body.removeChild(body.lastChild);
     }
-    document.getElementById("salesRepTable").innerHTML = html;
+    for (var i = 0; i < rows.length; i++){
+        var tr = trFromRow(rows[i],
+                            ["rep", "client", "phone",
+                             "territory", "source"]);
+        body.appendChild(tr);
+    }
 }
 
 
