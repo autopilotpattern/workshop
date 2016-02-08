@@ -1,0 +1,50 @@
+# Nginx as a load-balancing tier and reverse proxy
+nginx:
+    build: nginx/
+    mem_limit: 128m
+    ports:
+    - 80:80
+    expose:
+    - 80
+    links:
+    - consul:consul
+    restart: always
+    command: nginx -g "daemon off;"
+
+# the sales microservice
+sales:
+    build: sales/
+    links:
+    - consul
+    mem_limit: 128m
+    ports:
+    - 3000
+    restart: always
+
+# the customers microservice
+customers:
+    build: customers/
+    links:
+    - consul
+    mem_limit: 128m
+    ports:
+    - 4000
+    restart: always
+
+# service discovery tier
+consul:
+    image: progrium/consul:latest
+    command: -server -bootstrap -ui-dir /ui
+    restart: always
+    mem_limit: 128m
+    ports:
+      - 8500:8500
+    expose:
+      - 53
+      - 8300
+      - 8301
+      - 8302
+      - 8400
+      - 8500
+    dns:
+      - 127.0.0.1
