@@ -1,0 +1,19 @@
+{
+  "consul": "consul:8500",
+  "services": [
+    {
+      "name": "sales",
+      "port": 3000,
+      "health": "/usr/bin/curl --fail -s http://localhost:3000/data",
+      "poll": 3,
+      "ttl": 10
+    }
+  ],
+  "backends": [
+    {
+      "name": "customers",
+      "poll": 3,
+      "onChange": "pkill --signal SIGHUP node"
+    }
+  ]
+}

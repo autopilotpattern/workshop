@@ -9,7 +9,10 @@ nginx:
     links:
     - consul:consul
     restart: always
-    command: nginx -g "daemon off;"
+    command: >
+      /bin/containerbuddy
+      -config file:///etc/containerbuddy/containerbuddy.json
+      nginx -g "daemon off;"
 
 # the sales microservice
 sales:
