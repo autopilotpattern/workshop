@@ -21,4 +21,6 @@ The project is broken into 4 subsystems. Web clients communicate only with Nginx
 
 ![Completed project architecture](docs/arch.png)
 
-The `master` branch of this repo contains only an incomplete skeleton of services as a starting point. The configuration for Nginx and the Sales microservice are left incomplete, whereas the Customer microservice is complete and already includes the Containerbuddy configuration. Other branches will include the completed application as demonstrated at various workshops.
+The `master` branch of this repo contains only an incomplete skeleton of services as a starting point. The configuration for Nginx and the Sales microservice are left incomplete, whereas the Customer microservice is complete and already includes the Containerbuddy configuration. Other branches and associated releases will include the completed application as demonstrated at various workshops:
+
+- [ContainerSummit NYC 2016](https://github.com/tgross/workshop-autopilot/releases/tag/containersummit-nyc2016)
