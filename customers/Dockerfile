@@ -1,4 +1,4 @@
-# a Node.js application container including Containerbuddy
+# a Node.js application container including ContainerPilot
 FROM gliderlabs/alpine:3.3
 
 # install curl
@@ -11,22 +11,24 @@ RUN apk update && apk add \
 COPY package.json /opt/customers/
 RUN cd /opt/customers && npm install
 
-# get Containerbuddy release
-RUN export CB=containerbuddy-0.1.1 &&\
-   curl -Lo /tmp/${CB}.tar.gz \
-   https://github.com/joyent/containerbuddy/releases/download/0.1.1/${CB}.tar.gz && \
-   tar -xz -f /tmp/${CB}.tar.gz && \
-   mv /containerbuddy /bin/
+# get ContainerPilot release
+ENV CONTAINERPILOT_VERSION 2.0.0
+RUN export CP_SHA1=a82b1257328551eb93fc9a8cc1dd3f3e64664dd5 \
+    && curl -Lso /tmp/containerpilot.tar.gz \
+         "https://github.com/joyent/containerpilot/releases/download/${CONTAINERPILOT_VERSION}/containerpilot-${CONTAINERPILOT_VERSION}.tar.gz" \
+    && echo "${CP_SHA1}  /tmp/containerpilot.tar.gz" | sha1sum -c \
+    && tar zxf /tmp/containerpilot.tar.gz -C /bin \
+    && rm /tmp/containerpilot.tar.gz
 
 # add our application
 COPY customers.js /opt/customers/
 
-# add Containerbuddy configuration
-COPY containerbuddy.json /etc/containerbuddy.json
-ENV CONTAINERBUDDY=file:///etc/containerbuddy.json
+# add ContainerPilot configuration
+COPY containerpilot.json /etc/containerpilot.json
+ENV CONTAINERPILOT=file:///etc/containerpilot.json
 
 EXPOSE 4000
-CMD [ "/bin/containerbuddy", \
+CMD [ "/bin/containerpilot", \
       "node", \
       "/opt/customers/customers.js" \
 ]
