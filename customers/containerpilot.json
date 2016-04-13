@@ -4,7 +4,7 @@
     {
       "name": "customers",
       "port": 4000,
-      "health": "/usr/bin/curl --fail -s http://localhost:4000/data",
+      "health": "/usr/bin/curl -o /dev/null --fail -s http://localhost:4000/data",
       "poll": 3,
       "ttl": 10
     }

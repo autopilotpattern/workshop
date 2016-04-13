@@ -1,4 +1,4 @@
-# a minimal Nginx container including Containerbuddy and a simple virtulhost config
+# a minimal Nginx container including ContainerPilot and a simple virtulhost config
 FROM gliderlabs/alpine:3.3
 
 # install nginx and tooling we need
@@ -13,15 +13,17 @@ RUN curl -Lo /tmp/consul_template_0.11.0_linux_amd64.zip https://github.com/hash
     unzip /tmp/consul_template_0.11.0_linux_amd64.zip && \
     mv consul-template /bin
 
-# get Containerbuddy release
-RUN export CB=containerbuddy-0.1.1 &&\
-   curl -Lo /tmp/${CB}.tar.gz \
-   https://github.com/joyent/containerbuddy/releases/download/0.1.1/${CB}.tar.gz && \
-   tar -xz -f /tmp/${CB}.tar.gz && \
-   mv /containerbuddy /bin/
+# get ContainerPilot release
+ENV CONTAINERPILOT_VERSION 2.0.0
+RUN export CP_SHA1=a82b1257328551eb93fc9a8cc1dd3f3e64664dd5 \
+    && curl -Lso /tmp/containerpilot.tar.gz \
+         "https://github.com/joyent/containerpilot/releases/download/${CONTAINERPILOT_VERSION}/containerpilot-${CONTAINERPILOT_VERSION}.tar.gz" \
+    && echo "${CP_SHA1}  /tmp/containerpilot.tar.gz" | sha1sum -c \
+    && tar zxf /tmp/containerpilot.tar.gz -C /bin \
+    && rm /tmp/containerpilot.tar.gz
 
-# add Containerbuddy configuration and onChange handler
-COPY containerbuddy.json /etc/containerbuddy/
+# add ContainerPilot configuration and onChange handler
+COPY containerpilot.json /etc/containerpilot/
 
 # add static Nginx content
 COPY index.* /usr/share/nginx/html/
@@ -30,6 +32,6 @@ COPY index.* /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # add Nginx virtualhost template that we'll overwrite
-COPY nginx.conf.ctmpl /etc/containerbuddy/
+COPY nginx.conf.ctmpl /etc/containerpilot/
 
 EXPOSE 80

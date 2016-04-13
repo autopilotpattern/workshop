@@ -10,8 +10,8 @@ nginx:
     - consul:consul
     restart: always
     command: >
-      /bin/containerbuddy
-      -config file:///etc/containerbuddy/containerbuddy.json
+      /bin/containerpilot
+      -config file:///etc/containerpilot/containerpilot.json
       nginx -g "daemon off;"
 
 # the sales microservice
