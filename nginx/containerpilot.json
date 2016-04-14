@@ -1,9 +1,10 @@
 {
   "consul": "consul:8500",
-  "onStart": [
-    "consul-template", "-once", "-consul", "consul:8500", "-template",
-    "/etc/containerpilot/nginx.conf.ctmpl:/etc/nginx/nginx.conf"
-  ],
+  "preStart": "/bin/reload-nginx.sh preStart",
+  "logging": {
+    "level": "DEBUG",
+    "format": "text"
+  },
   "services": [
     {
       "name": "nginx",
@@ -18,18 +19,12 @@
     {
       "name": "sales",
       "poll": 3,
-      "onChange": [
-        "consul-template", "-once", "-consul", "consul:8500", "-template",
-        "/etc/containerpilot/nginx.conf.ctmpl:/etc/nginx/nginx.conf:nginx -s reload"
-      ]
+      "onChange": "/bin/reload-nginx.sh onChange"
     },
     {
       "name": "customers",
       "poll": 4,
-      "onChange": [
-        "consul-template", "-once", "-consul", "consul:8500", "-template",
-        "/etc/containerpilot/nginx.conf.ctmpl:/etc/nginx/nginx.conf:nginx -s reload"
-      ]
+      "onChange": "/bin/reload-nginx.sh onChange"
     }
   ]
 }

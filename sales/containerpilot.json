@@ -13,7 +13,7 @@
     {
       "name": "customers",
       "poll": 3,
-      "onChange": "pkill --signal SIGHUP node"
+      "onChange": "pkill -SIGHUP node"
     }
   ]
 }

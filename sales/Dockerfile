@@ -12,8 +12,8 @@ COPY package.json /opt/sales/
 RUN cd /opt/sales && npm install
 
 # get ContainerPilot release
-ENV CONTAINERPILOT_VERSION 2.0.0
-RUN export CP_SHA1=a82b1257328551eb93fc9a8cc1dd3f3e64664dd5 \
+ENV CONTAINERPILOT_VERSION 2.0.1
+RUN export CP_SHA1=a4dd6bc001c82210b5c33ec2aa82d7ce83245154 \
     && curl -Lso /tmp/containerpilot.tar.gz \
          "https://github.com/joyent/containerpilot/releases/download/${CONTAINERPILOT_VERSION}/containerpilot-${CONTAINERPILOT_VERSION}.tar.gz" \
     && echo "${CP_SHA1}  /tmp/containerpilot.tar.gz" | sha1sum -c \
