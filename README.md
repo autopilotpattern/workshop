@@ -17,12 +17,13 @@ This project requires a Docker host and client, as well as Docker Compose. The [
 
 ### Project architecture
 
-The project is broken into 4 subsystems. Web clients communicate only with Nginx, which serves as a reverse proxy and load balancer to two microservices -- Customers and Sales. The microservices should be able to be scaled to arbitrary numbers of nodes and the virtualhost configuration in Nginx will be updated to suit. Also, the Customers application needs data from Sales and the Sales application needs data from Customers. This means that when we scale up Sales nodes, all the Customer nodes must learn of the change (and vice-versa). We use Joyent's [Containerbuddy](https://github.com/joyent/containerbuddy) to orchestrate this process and Hashicorps' [Consul](https://www.consul.io/) as a discovery service.
+The project is broken into 4 subsystems. Web clients communicate only with Nginx, which serves as a reverse proxy and load balancer to two microservices -- Customers and Sales. The microservices should be able to be scaled to arbitrary numbers of nodes and the virtualhost configuration in Nginx will be updated to suit. Also, the Customers application needs data from Sales and the Sales application needs data from Customers. This means that when we scale up Sales nodes, all the Customer nodes must learn of the change (and vice-versa). We use Joyent's [ContainerPilot](https://github.com/joyent/containerpilot) to orchestrate this process and Hashicorps' [Consul](https://www.consul.io/) as a discovery service.
 
 ![Completed project architecture](docs/arch.png)
 
-The `master` branch of this repo contains only an incomplete skeleton of services as a starting point. The configuration for Nginx and the Sales microservice are left incomplete, whereas the Customer microservice is complete and already includes the Containerbuddy configuration. You can find an up-to-date version of the complete application on the [`working` tag](https://github.com/tgross/workshop-autopilot/tree/working).
+The `master` branch of this repo contains only an incomplete skeleton of services as a starting point. The configuration for Nginx and the Sales microservice are left incomplete, whereas the Customer microservice is complete and already includes the ContainerPilot configuration. You can find an up-to-date version of the complete application on the [`working` tag](https://github.com/autopilotpattern/workshop/tree/working).
 
-[Releases](https://github.com/tgross/workshop-autopilot/releases) will include the completed application as demonstrated at various workshops:
+[Releases](https://github.com/autopilotpattern/workshop/releases) will include the completed application as demonstrated at various workshops:
 
-- [ContainerSummit NYC 2016](https://github.com/tgross/workshop-autopilot/releases/tag/containersummit-nyc2016)
+- [ContainerSummit NYC 2016](https://github.com/autopilotpattern/workshop/releases/tag/containersummit-nyc2016)
+- [Container.Camp SF 2016](https://github.com/autopilotpattern/workshop/releases/tag/containercamp-sf2016)
