@@ -3,11 +3,11 @@ nginx:
     build: nginx/
     mem_limit: 128m
     ports:
-    - 80:80
+      - 80:80
     expose:
-    - 80
+      - 80
     links:
-    - consul:consul
+      - consul:consul
     restart: always
     command: >
       /bin/containerpilot
@@ -18,20 +18,24 @@ nginx:
 sales:
     build: sales/
     links:
-    - consul
+      - consul
     mem_limit: 128m
     expose:
-    - 3000
+      - 3000
+    # environment:
+    #   - MYSQL_DB=
+    #   - MYSQL_USER=
+    #   - MYSQL_PASSWORD=
     restart: always
 
 # the customers microservice
 customers:
     build: customers/
     links:
-    - consul
+      - consul
     mem_limit: 128m
     expose:
-    - 4000
+      - 4000
     restart: always
 
 # service discovery tier
