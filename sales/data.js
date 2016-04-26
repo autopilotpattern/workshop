@@ -24,10 +24,12 @@ var data = {
 // Set up the database connection pools
 
 process.on('SIGHUP', function () {
-  poolCluster.end(function(err) {
-    if (err) console.log(err);
-    loadPool(function() { console.log('Reloaded MySQL configuration.');});
-  });
+  if (user && password && database) {
+    poolCluster.end(function(err) {
+      if (err) console.log(err);
+      loadPool(function() { console.log('Reloaded MySQL configuration.');});
+    });
+  }
 });
 
 var loadPool = function(callback) {
@@ -104,12 +106,16 @@ var query = function(sql, params, serverGroup, callback) {
 
 // check to see if the table has been set up
 var init = function() {
-  loadPool(function() {
-    query("SELECT COUNT(*) FROM sales", [], "PRIMARY*",
-          function (err) {
-            if (err) loadInitialData();
-          });
-  });
+  if (user && password && database) {
+    loadPool(function() {
+      query("SELECT COUNT(*) FROM sales", [], "PRIMARY*",
+            function (err) {
+              if (err) loadInitialData();
+            });
+    });
+  } else {
+    console.log("No database credentials set. Assuming no MySQL backend.")
+  }
 }
 
 var loadInitialData = function(callback) {
