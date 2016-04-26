@@ -26,23 +26,23 @@ var data = {
 process.on('SIGHUP', function () {
   poolCluster.end(function(err) {
     if (err) console.log(err);
-    poolCluster = null;
-    loadPool();
+    loadPool(function() { console.log('Reloaded MySQL configuration.');});
   });
 });
 
 var loadPool = function(callback) {
-  if (!poolCluster) poolCluster = mysql.createPoolCluster();
+  var thisCluster = mysql.createPoolCluster();
   consul.getUpstreams("mysql", function(hosts) {
-    populatePoolCluster(hosts, "REPLICA");
+    populatePoolCluster(thisCluster, hosts, "REPLICA");
     consul.getUpstreams("mysql-primary", function(hosts) {
-      populatePoolCluster(hosts, "PRIMARY");
+      populatePoolCluster(thisCluster, hosts, "PRIMARY");
+      poolCluster = thisCluster;
       callback();
     });
   });
 }
 
-var populatePoolCluster = function(hosts, nameStub) {
+var populatePoolCluster = function(cluster, hosts, nameStub) {
   console.log('Configuring ' + nameStub + ' pool with '+ hosts.length +' host(s)');
   for (var h = 0; h < hosts.length; h++) {
     config = {
@@ -52,7 +52,7 @@ var populatePoolCluster = function(hosts, nameStub) {
       database: database,
     }
     name = nameStub + h;
-    poolCluster.add(name, config);
+    cluster.add(name, config);
   }
 }
 

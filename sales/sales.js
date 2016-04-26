@@ -91,10 +91,12 @@ app.listen(3000, function () {
 process.on('SIGHUP', function () {
   console.log('Received SIGHUP');
   getCustomersHosts(true, function(hosts) {
-    msg = "Updated upstreamHosts: ";
-    for (var i = 0; i < hosts.length; i++) {
-      msg += " " + hosts[i]["address"] + ":" + hosts[i]["port"];
+    if (hosts.length > 0) {
+      msg = "Updated customers hosts: ";
+      for (var i = 0; i < hosts.length; i++) {
+        msg += " " + hosts[i]["address"] + ":" + hosts[i]["port"];
+      }
+      console.log(msg);
     }
-    console.log(msg);
   });
 });
