@@ -3,9 +3,9 @@ nginx:
     image: autopilotpattern/workshop-nginx
     mem_limit: 128m
     ports:
-    - 80
+      - 80
     links:
-    - consul:consul
+      - consul:consul
     restart: always
     command: >
       /bin/containerpilot
@@ -16,20 +16,24 @@ nginx:
 sales:
     image: autopilotpattern/workshop-sales
     links:
-    - consul
+      - consul
     mem_limit: 128m
     ports:
-    - 3000
+      - 3000
+    # environment:
+    #   - MYSQL_DB=
+    #   - MYSQL_USER=
+    #   - MYSQL_PASSWORD=
     restart: always
 
 # the customers microservice
 customers:
     image: autopilotpattern/workshop-customers
     links:
-    - consul
+      - consul
     mem_limit: 128m
     ports:
-    - 4000
+      - 4000
     restart: always
 
 # service discovery tier
