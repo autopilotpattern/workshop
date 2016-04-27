@@ -42,6 +42,8 @@ consul:
     command: -server -bootstrap -ui-dir /ui
     restart: always
     mem_limit: 128m
+    labels:
+      - triton.cns.services=consul
     ports:
       - 8500
     dns:
