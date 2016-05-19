@@ -1,2 +1,3 @@
 FROM autopilotpattern/testing
-COPY tests.py /src
+COPY tests/tests.py /src
+COPY docker-compose.yml /src

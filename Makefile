@@ -12,22 +12,21 @@ else
 endif
 
 build:
-	cd tests && docker build -t="test" .
+	docker build -f tests/Dockerfile -t="test" .
 
 test-triton:
 	docker run --rm \
 		-e DOCKER_TLS_VERIFY=1 \
 		-e DOCKER_CERT_PATH=/.sdc/docker/$(SDC_ACCOUNT) \
 		-e DOCKER_HOST=$(DOCKER_HOST) \
-		-v $(HOME)/.sdc:/.sdc \
+		-v ${HOME}/.sdc:/.sdc \
 		-v $(shell pwd):/src \
-		-w /src test python tests/tests.py
+		-w /src test python tests.py
 
 test:
 	docker run --rm $(DOCKER_CTX) \
 		-e LOG_LEVEL=$(LOG_LEVEL) \
-		-v $(shell pwd):/src \
-		-w /src test python tests/tests.py
+		-w /src test python tests.py
 
 shell:
 	docker run -it --rm $(DOCKER_CTX) \
