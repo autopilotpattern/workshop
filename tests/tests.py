@@ -4,6 +4,11 @@ import time
 import unittest
 from testcases import AutopilotPatternTest, WaitTimeoutError, debug
 
+import logging
+_compose_logger = logging.getLogger('compose')
+_compose_logger.setLevel(logging.WARN)
+
+
 class WorkshopStackTest(AutopilotPatternTest):
 
     project_name = 'workshop'
@@ -17,8 +22,10 @@ class WorkshopStackTest(AutopilotPatternTest):
         the Nginx virtualhost config.
         """
         # make sure both services register with nginx
-        self.settle('sales', 1)
-        self.settle('customers', 1)
+        nginx = self.wait_for_service('nginx', 1)
+        print(nginx)
+        self.settle('sales', 1, 60)
+        self.settle('customers', 1, 60)
 
         # test scale-up
         self.scale_and_check('sales', 3, '3000')
@@ -45,16 +52,16 @@ class WorkshopStackTest(AutopilotPatternTest):
                          .format(servers, expected))
 
 
-    def settle(self, service, count):
+    def settle(self, service, count, timeout=30):
         """
         Wait for `count` instance of `service` to read as 'Up' and
         then wait for them to show up in the Nginx virtualhost config.
         """
-        nodes = self.wait_for_service(service, count)
+        nodes = self.wait_for_service(service, count, timeout)
         if len(nodes) < count:
             self.fail('Failed to scale {} to {} instances'
                       .format(service, count))
-        timeout = 15
+        timeout = timeout
         while timeout > 0:
             servers = self.get_upstream_blocks(service)
             if len(servers) == count:
