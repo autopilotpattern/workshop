@@ -81,10 +81,6 @@ app.get('/data', function (req, res) {
   salesData.getData(function (data) { res.send(data) });
 });
 
-app.listen(3000, function () {
-  console.log('Running Sales app on port 3000');
-});
-
 process.on('SIGHUP', function () {
   console.log('Received SIGHUP');
   getCustomersHosts(true, function(hosts) {
@@ -96,4 +92,8 @@ process.on('SIGHUP', function () {
       console.log(msg);
     }
   });
+});
+
+app.listen(3000, function () {
+  console.log('Running Sales app on port 3000');
 });

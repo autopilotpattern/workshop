@@ -13,7 +13,7 @@
     {
       "name": "sales",
       "poll": 3,
-      "onChange": "pkill -SIGHUP node"
+      "onChange": "/usr/local/bin/reload.sh"
     }
   ]
 }
