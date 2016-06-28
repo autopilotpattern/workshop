@@ -25,7 +25,7 @@ test:
 	&& docker run --rm $(DOCKER_CTX) \
 		-e LOG_LEVEL=$(LOG_LEVEL) \
 		-e COMPOSE_HTTP_TIMEOUT=300 \
-		-v ${HOME}/.sdc:/.sdc \
+		-v ${HOME}/.triton:/.triton \
 		-v ${HOME}/src/autopilotpattern/testing/testcases.py:/usr/lib/python2.7/site-packages/testcases.py \
 		-v $(shell pwd)/tests/tests.py:/src/tests.py \
 		-w /src test python tests.py
