@@ -12,7 +12,16 @@ else
 endif
 
 build:
+	docker-compose -f local-compose.yml build
+	docker tag workshop_nginx autopilotpattern/workshop-nginx
+	docker tag workshop_customers autopilotpattern/workshop-customers
+	docker tag workshop_sales autopilotpattern/workshop-sales
 	docker build -f tests/Dockerfile -t="test" .
+
+ship:
+	docker push autopilotpattern/workshop-nginx
+	docker push autopilotpattern/workshop-customers
+	docker push autopilotpattern/workshop-sales
 
 # Run tests by running the test container. Currently only runs locally
 # but takes your DOCKER environment vars to use as the test runner's
