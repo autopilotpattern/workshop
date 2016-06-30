@@ -2,7 +2,7 @@
 DOCKER_CERT_PATH ?=
 DOCKER_HOST ?=
 DOCKER_TLS_VERIFY ?=
-LOG_LEVEL ?= DEBUG
+LOG_LEVEL ?= INFO
 SDC_ACCOUNT ?=
 
 ifeq ($(DOCKER_CERT_PATH),)
@@ -27,6 +27,11 @@ ship:
 # but takes your DOCKER environment vars to use as the test runner's
 # environment (ex. the test runner runs locally but starts containers
 # on Triton if you're pointed to Triton)
+TEST_RUN := python -m trace
+ifeq ($(TRACE),)
+	TEST_RUN := python
+endif
+
 test:
 	unset DOCKER_HOST \
 	&& unset DOCKER_CERT_PATH \
@@ -37,7 +42,7 @@ test:
 		-v ${HOME}/.triton:/.triton \
 		-v ${HOME}/src/autopilotpattern/testing/testcases.py:/usr/lib/python2.7/site-packages/testcases.py \
 		-v $(shell pwd)/tests/tests.py:/src/tests.py \
-		-w /src test python tests.py
+		-w /src test $(TEST_RUN) tests.py
 
 shell:
 	docker run -it --rm $(DOCKER_CTX) \

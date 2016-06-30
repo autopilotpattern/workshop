@@ -4,10 +4,6 @@ import time
 import unittest
 from testcases import AutopilotPatternTest, WaitTimeoutError, debug
 
-import logging
-_compose_logger = logging.getLogger('compose')
-_compose_logger.setLevel(logging.WARN)
-
 
 class WorkshopStackTest(AutopilotPatternTest):
 
@@ -22,8 +18,8 @@ class WorkshopStackTest(AutopilotPatternTest):
         the Nginx virtualhost config.
         """
         # make sure both services register with nginx
+
         nginx = self.wait_for_service('nginx', 1)
-        print(nginx)
         self.settle('sales', 1, 60)
         self.settle('customers', 1, 60)
 
@@ -39,7 +35,7 @@ class WorkshopStackTest(AutopilotPatternTest):
         wait for it to settle, and then verify that Nginx has the correct
         IPs for the servers in its upstream block.
         """
-        self.docker_compose_scale(service, count)
+        self.compose_scale(service, count)
         self.settle(service, count)
         servers = self.get_upstream_blocks(service)
         servers.sort()
@@ -77,12 +73,7 @@ class WorkshopStackTest(AutopilotPatternTest):
         Parse the Nginx config file to get the server address:port
         blocks for the upstream block for `service`
         """
-        exit_code, config, _ = self.docker_compose_exec(
-            'nginx_1',
-            'cat /etc/nginx/nginx.conf')
-        if exit_code:
-            self.fail('Got non-zero exit code from docker exec')
-
+        config = self.docker_exec('nginx_1', 'cat /etc/nginx/nginx.conf')
         regex = re.compile('upstream {} \{{.*?\}}'.format(service),
                            re.MULTILINE|re.DOTALL)
         matches = regex.search(config)
