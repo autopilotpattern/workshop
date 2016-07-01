@@ -19,8 +19,8 @@ class WorkshopStackTest(AutopilotPatternTest):
         # make sure both services register with nginx
 
         nginx = self.wait_for_service('nginx', 1)
-        self.settle('sales', 1, 60)
-        self.settle('customers', 1, 60)
+        self.instrument(self.settle, 'sales', 1, 60)
+        self.instrument(self.settle, 'customers', 1, 60)
 
         # test scale-up
         self.scale_and_check('sales', 3, '3000')
