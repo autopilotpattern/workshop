@@ -36,17 +36,14 @@ app.get('/', function (req, res) {
                  "No data available.");
       } else {
         getCustomerData(hosts, function(parsed) {
-          sendData(res, data,
-                   parsed[company]["location"],
-                   parsed[company]["source"]
-                  );
+          sendData(res, data, parsed);
         });
       }
     });
   });
 });
 
-var getCustomerData = function(callback) {
+var getCustomerData = function(customerHosts, callback) {
   // in a real production application we'd want a more robust
   // load-balancing algo but this avoids managing state by
   // picking at random
@@ -65,14 +62,14 @@ var getCustomerData = function(callback) {
   });
 }
 
-var sendData = function(res, salesData, territory, source) {
+var sendData = function(res, salesData, parsed) {
   resp = []
   for (var rep in salesData) {
     resp.push({"rep": rep,
                "client": salesData[rep]["client"],
                "phone": salesData[rep]["phone"],
-               "territory": territory,
-               "source": source});
+               "territory": parsed[salesData[rep]["client"]]["location"],
+               "source": parsed[salesData[rep]["client"]]["source"]});
   }
   res.send(resp);
 }
@@ -82,10 +79,6 @@ var sendData = function(res, salesData, territory, source) {
 app.get('/data', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
   salesData.getData(function (data) { res.send(data) });
-});
-
-app.listen(3000, function () {
-  console.log('Running Sales app on port 3000');
 });
 
 process.on('SIGHUP', function () {
@@ -99,4 +92,8 @@ process.on('SIGHUP', function () {
       console.log(msg);
     }
   });
+});
+
+app.listen(3000, function () {
+  console.log('Running Sales app on port 3000');
 });

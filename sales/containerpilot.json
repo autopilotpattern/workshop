@@ -13,17 +13,17 @@
     {
       "name": "customers",
       "poll": 3,
-      "onChange": "pkill -SIGHUP node"
+      "onChange": "/usr/local/bin/reload.sh"
     },
     {
       "name": "mysql",
       "poll": 5,
-      "onChange": "pkill -SIGHUP node"
+      "onChange": "/usr/local/bin/reload.sh"
     },
     {
       "name": "mysql-primary",
       "poll": 5,
-      "onChange": "pkill -SIGHUP node"
+      "onChange": "/usr/local/bin/reload.sh"
     }
   ]
 }
