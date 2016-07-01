@@ -2,14 +2,13 @@ from __future__ import print_function
 import re
 import time
 import unittest
-from testcases import AutopilotPatternTest, WaitTimeoutError, debug
+from testcases import AutopilotPatternTest, WaitTimeoutError
 
 
 class WorkshopStackTest(AutopilotPatternTest):
 
     project_name = 'workshop'
 
-    @debug
     def test_scaleup_scaledown(self):
         """
         Given the workshop stack, when we scale up a service then new
