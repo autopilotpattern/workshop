@@ -54,14 +54,18 @@ http {
             deny all;
         }
 
-        {{ if service "customers" }}
+        # BROKEN/DEMO:
+        # our Nginx application can't start because the customers upstream
+        # will be empty if there are no customers instances. We need to wrap
+        # this block in an `if`.
         location ^~ /customers {
             # strip '/customers' from the request before passing
             # it along to the Customers upstream
             rewrite ^/customers(/.*)$ $1 break;
             proxy_pass http://customers;
             proxy_redirect off;
-        }{{end}}
+        }
+
         {{ if service "sales" }}
         location ^~ /sales {
             # strip '/sales' from the request before passing

@@ -1,16 +1,12 @@
 {
   "consul": "consul:8500",
-  "preStart": "/bin/reload-nginx.sh preStart",
-  "logging": {
-    "level": "DEBUG",
-    "format": "text"
-  },
+  "preStart": "/bin/reload-nginx.sh preStart" // BROKEN/DEMO bad JSON
   "services": [
     {
       "name": "nginx",
       "port": 80,
       "interfaces": ["eth1", "eth0"],
-      "health": "/usr/bin/curl -o /dev/null --fail -s http://localhost/health",
+      "health": "/usr/bin/curl -o /dev/null -s http://localhost/404",
       "poll": 10,
       "ttl": 25
     }

@@ -26,7 +26,9 @@ COPY customers.js /opt/customers/
 # add ContainerPilot configuration and scripts
 COPY reload.sh /usr/local/bin/reload.sh
 COPY containerpilot.json /etc/containerpilot.json
-ENV CONTAINERPILOT=file:///etc/containerpilot.json
+
+# BROKEN/DEMO: without ContainerPilot config we'll throw an error
+#ENV CONTAINERPILOT=file:///etc/containerpilot.json
 
 EXPOSE 4000
 CMD [ "/bin/containerpilot", \

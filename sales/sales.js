@@ -81,6 +81,8 @@ app.get('/data', function (req, res) {
   salesData.getData(function (data) { res.send(data) });
 });
 
+// BROKEN/DEMO: no handler for SIGHUP means we crash if we get SIGHUP
+/*
 process.on('SIGHUP', function () {
   console.log('Received SIGHUP');
   getCustomersHosts(true, function(hosts) {
@@ -93,6 +95,7 @@ process.on('SIGHUP', function () {
     }
   });
 });
+*/
 
 app.listen(3000, function () {
   console.log('Running Sales app on port 3000');
