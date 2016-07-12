@@ -6,7 +6,7 @@ exports.getUpstreams = function(service, callback) {
   http.get({
     host: 'consul',
     port: 8500,
-    path: '/v1/catalog/service/' + service
+    path: '/v1/health/service/' + service + '?passing'
   }, function(response) {
     var body = '';
     response.on('data', function(d) { body += d; });
@@ -14,8 +14,8 @@ exports.getUpstreams = function(service, callback) {
       var parsed = JSON.parse(body);
       hosts = []
       for (var i = 0; i < parsed.length; i++) {
-        hosts.push({address: parsed[i].ServiceAddress,
-                    port: parsed[i].ServicePort});
+        hosts.push({address: parsed[i].Service.Address,
+                    port: parsed[i].Service.Port});
       }
       callback(hosts);
     });
