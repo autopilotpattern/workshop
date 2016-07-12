@@ -26,12 +26,6 @@ help:
 	@echo "'make ship' to docker push"
 
 
-#ifeq ($(DOCKER_CERT_PATH),)
-#	DOCKER_CTX := -v /var/run/docker.sock:/var/run/docker.sock
-#else
-#	DOCKER_CTX := -e DOCKER_TLS_VERIFY=1 -e DOCKER_CERT_PATH=$(DOCKER_CERT_PATH:$(HOME)%=%) -e DOCKER_HOST=$(DOCKER_HOST)
-#endif
-
 build:
 	docker-compose -f local-compose.yml build
 	docker tag workshop_nginx autopilotpattern/workshop-nginx
