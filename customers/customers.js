@@ -93,10 +93,6 @@ app.get('/data', function (req, res) {
     res.send(data);
 });
 
-app.listen(4000, function () {
-    console.log('Running Customers app on port 4000');
-});
-
 process.on('SIGHUP', function () {
     console.log('Received SIGHUP');
     getUpstreams(true, function(hosts) {
@@ -106,4 +102,8 @@ process.on('SIGHUP', function () {
         }
         console.log(msg);
     });
+});
+
+app.listen(4000, function () {
+    console.log('Running Customers app on port 4000');
 });

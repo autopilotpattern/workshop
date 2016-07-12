@@ -1,5 +1,5 @@
 # a Node.js application container including ContainerPilot
-FROM gliderlabs/alpine:3.3
+FROM alpine:3.3
 
 # install curl
 RUN apk update && apk add \
@@ -23,7 +23,8 @@ RUN export CP_SHA1=a4dd6bc001c82210b5c33ec2aa82d7ce83245154 \
 # add our application
 COPY customers.js /opt/customers/
 
-# add ContainerPilot configuration
+# add ContainerPilot configuration and scripts
+COPY reload.sh /usr/local/bin/reload.sh
 COPY containerpilot.json /etc/containerpilot.json
 ENV CONTAINERPILOT=file:///etc/containerpilot.json
 

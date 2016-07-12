@@ -2,110 +2,98 @@ var express = require('express');
 var http = require('http');
 var os = require('os');
 
+var salesData = require('./data');
+var consul = require('./consul');
+
 var app = express();
-var upstreamHosts = [];
+var customersHosts = [];
 
-// the data contains the hostname so that we can see upstreams change
-// in the demonstration app
-var sourceName = "[sales:" + os.hostname() + "]";
-var data = {
-    "Alice": {"phone": "555-1234", "client": "ACME Corporation", "source": sourceName},
-    "Bob": {"phone": "555-2341", "client": "Vandelay Industries", "source": sourceName},
-    "Carol": {"phone": "555-3412", "client": "Hooli", "source": sourceName},
-    "Dave": {"phone": "555-4123", "client": "Initech", "source": sourceName}
-};
-
-// query Consul for the upstream services
-var getUpstreams = function(force, callback) {
-    if (upstreamHosts.length != 0 && !force) {
-        callback(upstreamHosts);
-    } else {
-        http.get({
-            host: 'consul',
-            port: 8500,
-            path: '/v1/catalog/service/customers'
-        }, function(response) {
-            var body = '';
-            response.on('data', function(d) { body += d; });
-            response.on('end', function() {
-                var parsed = JSON.parse(body);
-                hosts = []
-                for (var i = 0; i < parsed.length; i++) {
-                    hosts.push({address: parsed[i].ServiceAddress,
-                                port: parsed[i].ServicePort});
-                }
-                upstreamHosts = hosts; // cache the result
-                callback(hosts);
-            });
-        });
-    }
+// Get the list of upstream hosts for the Customers service
+// and cache them for the next call.
+var getCustomersHosts = function(force, callback) {
+  if (customersHosts.length != 0 && !force) {
+    callback(customersHosts);
+  } else {
+    consul.getUpstreams("customers", function(hosts) {
+      customerHosts = hosts;
+      callback(hosts);
+    });
+  }
 }
 
 // The root route queries the Customers microservice for information about the
 // customer associated with each sales rep, and then returns a JSON response
 // with the merged data.
 app.get('/', function (req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    getUpstreams(false, function(customerHosts) {
-        if (customerHosts.length == 0) {
-            // if no upstreams are available we'll respond without
-            // trying to query them.
-            resp = []
-            for (var rep in data) {
-                resp.push({"rep": rep,
-                           "client": data[rep]["client"],
-                           "phone": data[rep]["phone"],
-                           "territory": "No data available.",
-                           "source": "No data available."});
-            }
-            res.send(resp);
-        } else {
-            // in a real production application we'd want a more robust
-            // load-balancing algo but this avoids managing state
-            var host = customerHosts[Math.floor(Math.random() * customerHosts.length)];
-            http.get({
-                host: host["address"],
-                port: host["port"],
-                path: '/data'
-            }, function(response) {
-                var body = '';
-                response.on('data', function(d) { body += d; });
-                response.on('end', function() {
-                    var parsed = JSON.parse(body);
-                    resp = []
-                    for (var rep in data) {
-                        company = data[rep]["client"]
-                        resp.push({"rep": rep,
-                                   "client": company,
-                                   "phone": data[rep]["phone"],
-                                   "territory": parsed[company]["location"],
-                                   "source": parsed[company]["source"]});
-                    }
-                    res.send(resp);
-                });
-            });
-        }
+  res.setHeader('Content-Type', 'application/json');
+  getCustomersHosts(false, function(hosts) {
+    data = salesData.getData(function(data) {
+      if (hosts.length == 0) {
+        // if no upstreams are available we'll respond without
+        // trying to query them.
+        sendData(res, data,
+                 "No data available.",
+                 "No data available.");
+      } else {
+        getCustomerData(hosts, function(parsed) {
+          sendData(res, data, parsed);
+        });
+      }
     });
+  });
 });
+
+var getCustomerData = function(customerHosts, callback) {
+  // in a real production application we'd want a more robust
+  // load-balancing algo but this avoids managing state by
+  // picking at random
+  var host = customerHosts[Math.floor(Math.random() * customerHosts.length)];
+  http.get({
+    host: host["address"],
+    port: host["port"],
+    path: '/data'
+  }, function(response) {
+    var body = '';
+    response.on('data', function(d) { body += d; });
+    response.on('end', function() {
+      var parsed = JSON.parse(body);
+      callback(parsed);
+    });
+  });
+}
+
+var sendData = function(res, salesData, parsed) {
+  resp = []
+  for (var rep in salesData) {
+    resp.push({"rep": rep,
+               "client": salesData[rep]["client"],
+               "phone": salesData[rep]["phone"],
+               "territory": parsed[salesData[rep]["client"]]["location"],
+               "source": parsed[salesData[rep]["client"]]["source"]});
+  }
+  res.send(resp);
+}
 
 // The /data route just sends the data this microservice knows
 // about without querying any other service.
 app.get('/data', function (req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(data);
-});
-
-app.listen(3000, function () {
-    console.log('Running Sales app on port 3000');
+  res.setHeader('Content-Type', 'application/json');
+  salesData.getData(function (data) { res.send(data) });
 });
 
 process.on('SIGHUP', function () {
-    console.log('Received SIGHUP');
-    getUpstreams(true, function(hosts) {
-        msg = "Updated upstreamHosts: ";
-        for (var i = 0; i < hosts.length; i++) {
-            msg += " " + hosts[i]["address"] + ":" + hosts[i]["port"];
-        }
-        console.log(msg);
-    });
+  console.log('Received SIGHUP');
+  getCustomersHosts(true, function(hosts) {
+    if (hosts.length > 0) {
+      msg = "Updated customers hosts: ";
+      for (var i = 0; i < hosts.length; i++) {
+        msg += " " + hosts[i]["address"] + ":" + hosts[i]["port"];
+      }
+      console.log(msg);
+    }
+  });
+});
+
+app.listen(3000, function () {
+  console.log('Running Sales app on port 3000');
 });
