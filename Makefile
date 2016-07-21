@@ -6,7 +6,11 @@ DOCKER_CERT_PATH ?=
 DOCKER_HOST ?=
 DOCKER_TLS_VERIFY ?=
 LOG_LEVEL ?= INFO
-SDC_ACCOUNT ?=
+
+# we get these from shippable if available
+COMMIT ?= $(shell git rev-parse --short HEAD)
+BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+TAG := $(BRANCH)-$(COMMIT)
 
 ifeq ($(DOCKER_CERT_PATH),)
         DOCKER_CTX := -v /var/run/docker.sock:/var/run/docker.sock
@@ -25,18 +29,16 @@ help:
 	@echo "'make build' to build docker environment"
 	@echo "'make ship' to docker push"
 
-
 build:
 	docker-compose -f local-compose.yml build
-	docker tag workshop_nginx autopilotpattern/workshop-nginx
-	docker tag workshop_customers autopilotpattern/workshop-customers
-	docker tag workshop_sales autopilotpattern/workshop-sales
-	docker build -f tests/Dockerfile -t="test" .
+	docker tag -f workshop_nginx autopilotpattern/workshop-nginx:$(TAG)
+	docker tag -f workshop_customers autopilotpattern/workshop-customers:$(TAG)
+	docker tag -f workshop_sales autopilotpattern/workshop-sales:$(TAG)
 
 ship:
-	docker push autopilotpattern/workshop-nginx
-	docker push autopilotpattern/workshop-customers
-	docker push autopilotpattern/workshop-sales
+	docker push autopilotpattern/workshop-nginx:$(TAG)
+	docker push autopilotpattern/workshop-customers:$(TAG)
+	docker push autopilotpattern/workshop-sales:$(TAG)
 
 # Run tests by running the test container. Currently only runs locally
 # but takes your DOCKER environment vars to use as the test runner's
@@ -47,6 +49,9 @@ ifeq ($(TRACE),)
 	TEST_RUN := python
 endif
 
+test-runner:
+	docker build -f tests/Dockerfile -t="joyent/test" .
+
 test:
 	unset DOCKER_HOST \
 	&& unset DOCKER_CERT_PATH \
@@ -54,9 +59,6 @@ test:
 	&& docker run --rm $(DOCKER_CTX) \
 		-e LOG_LEVEL=$(LOG_LEVEL) \
 		-e COMPOSE_HTTP_TIMEOUT=300 \
-		-v ${HOME}/.triton:/.triton \
-		-v ${HOME}/src/autopilotpattern/testing/testcases.py:/usr/lib/python2.7/site-packages/testcases.py \
-		-v $(shell pwd)/tests/tests.py:/src/tests.py \
 		-w /src test $(TEST_RUN) tests.py
 
 shell:

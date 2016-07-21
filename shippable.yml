@@ -1,0 +1,42 @@
+language: none
+
+build:
+  pre_ci:
+    - make test-runner
+
+  pre_ci_boot:
+    image_name: joyent/test
+    image_tag: latest
+    pull: false
+    options: "-e LOG_LEVEL=INFO"
+
+  # run integration tests using Docker Compose
+  ci:
+    - make build
+    - cp tests/tests.py . && python tests.py
+
+  # send the containers to the Docker Hub
+  on_success:
+    - make ship
+
+integrations:
+  hub:
+    - integrationName: DockerHub
+      type: docker
+
+  # ssh key we use for injecting into the build container
+  key:
+    - integrationName: TritonTestingKey
+      type: ssh-key
+
+notifications:
+  - integrationName: joyent-slack-blueprints
+    type: slack
+    recipients:
+      - "#blueprints"
+    branches:
+      only:
+        - master
+        - shippable
+    on_success: always
+    on_failure: always
