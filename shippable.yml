@@ -13,7 +13,7 @@ build:
   # run integration tests using Docker Compose
   ci:
     - make build
-    - cp tests/tests.py . && python tests.py
+    - make test
 
   # send the containers to the Docker Hub
   on_success:
@@ -24,19 +24,18 @@ integrations:
     - integrationName: DockerHub
       type: docker
 
-  # ssh key we use for injecting into the build container
   key:
     - integrationName: TritonTestingKey
       type: ssh-key
 
-notifications:
-  - integrationName: joyent-slack-blueprints
-    type: slack
-    recipients:
-      - "#blueprints"
-    branches:
-      only:
-        - master
-        - shippable
-    on_success: always
-    on_failure: always
+  notifications:
+    - integrationName: joyent-slack-blueprints
+      type: slack
+      recipients:
+        - "#blueprints"
+      branches:
+        only:
+          - master
+          - shippable
+      on_success: always
+      on_failure: always

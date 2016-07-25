@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 NODE_VERSION=6.0.0
 JSON_VERSION=9.0.3
 NODEENV_VERSION=0.13.6
@@ -52,14 +54,26 @@ endif
 test-runner:
 	docker build -f tests/Dockerfile -t="joyent/test" .
 
-test:
-	unset DOCKER_HOST \
-	&& unset DOCKER_CERT_PATH \
-	&& unset DOCKER_TLS_VERIFY \
-	&& docker run --rm $(DOCKER_CTX) \
-		-e LOG_LEVEL=$(LOG_LEVEL) \
-		-e COMPOSE_HTTP_TIMEOUT=300 \
-		-w /src test $(TEST_RUN) tests.py
+KEY := ~/.ssh/TritonTestingKey
+
+# configure triton profile
+~/.triton/profiles.d/us-sw-1.json:
+	{ \
+	  cp /tmp/ssh/TritonTestingKey $(KEY) ;\
+	  ssh-keygen -y -f $(KEY) > $(KEY).pub ;\
+	  FINGERPRINT=$$(ssh-keygen -l -f $(KEY) | awk '{print $$2}' | sed 's/MD5://') ;\
+	  printf '{"url": "https://us-sw-1.api.joyent.com", "name": "TritonTesting", "account": "timgross", "keyId": "%s"}' $${FINGERPRINT} > profile.json ;\
+	}
+	cat profile.json | triton profile create -f -
+	-rm profile.json
+
+test: ~/.triton/profiles.d/us-sw-1.json
+	cp tests/tests.py . && \
+		DOCKER_TLS_VERIFY=1 \
+		DOCKER_CERT_PATH=~/.triton/docker/timgross@us-sw-1_api_joyent_com \
+		DOCKER_HOST=tcp://us-sw-1.docker.joyent.com:2376 \
+		COMPOSE_HTTP_TIMEOUT=300 \
+		python tests.py
 
 shell:
 	docker run -it --rm $(DOCKER_CTX) \
