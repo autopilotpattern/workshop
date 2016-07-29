@@ -8,5 +8,5 @@ RUN git clone https://github.com/autopilotpattern/testing.git \
     && python setup.py install \
     && npm install -g triton json
 
-COPY tests/tests.py /src
-COPY docker-compose.yml /src
+COPY tests/tests.py /src/tests.py
+COPY docker-compose.yml /src/docker-compose.yml
