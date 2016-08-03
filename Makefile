@@ -74,7 +74,7 @@ test-runner:
 test: ~/.triton/profiles.d/us-sw-1.json
 	cp tests/tests.py . && \
 		DOCKER_TLS_VERIFY=1 \
-		DOCKER_CERT_PATH=~/.triton/docker/timgross@us-sw-1_api_joyent_com \
+		DOCKER_CERT_PATH=/root/.triton/docker/timgross@us-sw-1_api_joyent_com \
 		DOCKER_HOST=tcp://us-sw-1.docker.joyent.com:2376 \
 		COMPOSE_HTTP_TIMEOUT=300 \
 		PATH=/root/venv/3.5/bin \
@@ -84,7 +84,7 @@ test: ~/.triton/profiles.d/us-sw-1.json
 test-local-triton: ~/.triton/profiles.d/us-sw-1.json
 	docker run -it --rm \
 		-e DOCKER_TLS_VERIFY=1 \
-		-e DOCKER_CERT_PATH=~/.triton/docker/timgross@us-sw-1_api_joyent_com \
+		-e DOCKER_CERT_PATH=/root/.triton/docker/timgross@us-sw-1_api_joyent_com \
 		-e DOCKER_HOST=tcp://us-sw-1.docker.joyent.com:2376 \
 		$(LOCALRUN) $(PYTHON) tests.py
 
