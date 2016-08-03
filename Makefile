@@ -15,10 +15,9 @@ TAG := $(BRANCH)-$(COMMIT)
 
 ## Builds the application container images
 build:
-	docker-compose -f local-compose.yml build
-	docker tag -f workshop_nginx autopilotpattern/workshop-nginx:$(TAG)
-	docker tag -f workshop_customers autopilotpattern/workshop-customers:$(TAG)
-	docker tag -f workshop_sales autopilotpattern/workshop-sales:$(TAG)
+	docker build -f customers/Dockerfile -t=autopilotpattern/workshop-customers:$(TAG) customers
+	docker build -f sales/Dockerfile -t=autopilotpattern/workshop-sales:$(TAG) sales
+	docker build -f nginx/Dockerfile -t=autopilotpattern/workshop-nginx:$(TAG) nginx
 
 ## Pushes the application container images to the Docker Hub
 ship:
