@@ -76,7 +76,7 @@ test: ~/.triton/profiles.d/us-sw-1.json
 		DOCKER_CERT_PATH=/root/.triton/docker/timgross@us-sw-1_api_joyent_com \
 		DOCKER_HOST=tcp://us-sw-1.docker.joyent.com:2376 \
 		COMPOSE_HTTP_TIMEOUT=300 \
-		PATH=/root/venv/3.5/bin \
+		PATH=/root/venv/3.5/bin:/usr/bin \
 		$(PYTHON) tests.py
 
 ## Run the build container locally and deploy tests on Triton.
