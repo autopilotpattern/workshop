@@ -43,11 +43,11 @@ PYTHON := $(shell if [ -z ${TRACE} ]; then echo "python"; else echo "python -m t
 # we'll need to mount the local source into the container.
 # TODO: remove mount to ~/src/autopilotpattern/testing
 LOCALRUN := \
-	-e PATH=/root/venv/3.5/bin \
+	-e PATH=/root/venv/3.5/bin:/usr/bin \
 	-e COMPOSE_HTTP_TIMEOUT=300 \
 	-w /src \
 	-v ~/.triton:/root/.triton \
-	-v ~/src/autopilotpattern/testing/testcases.py:/usr/local/lib/python2.7/dist-packages/testcases.py \
+	-v ~/src/autopilotpattern/testing/testcases.py:/root/venv/3.5/lib/python3.5/site-packages/testcases.py \
 	-v $(shell pwd)/tests:/tests \
 	-v $(shell pwd)/docker-compose.yml:/docker-compose.yml \
 	-v $(shell pwd)/Makefile:/Makefile \
