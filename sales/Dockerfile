@@ -21,7 +21,8 @@ RUN export CP_SHA1=198d96c8d7bfafb1ab6df96653c29701510b833c \
     && rm /tmp/containerpilot.tar.gz
 
 # add our application
-COPY *.js /opt/sales/
+COPY sales.js /opt/sales/
+COPY lib/ /opt/sales/lib/
 
 # add ContainerPilot configuration and scripts
 COPY reload.sh /usr/local/bin/reload.sh

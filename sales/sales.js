@@ -1,22 +1,20 @@
 'use strict';
 
-var express = require('express');
-var http = require('http');
-var os = require('os');
+const Express = require('express');
+const Http = require('http');
+const SalesData = require('./lib/data');
+const Consul = require('./lib/consul');
 
-var salesData = require('./data');
-var consul = require('./consul');
-
-var app = express();
-var customersHosts = [];
+const app = Express();
+let customersHosts = [];
 
 // Get the list of upstream hosts for the Customers service
 // and cache them for the next call.
-var getCustomersHosts = function(force, callback) {
-  if (customersHosts.length != 0 && !force) {
+const getCustomersHosts = function (force, callback) {
+  if (customersHosts.length && !force) {
     callback(customersHosts);
   } else {
-    consul.getUpstreams('customers', function(hosts) {
+    Consul.getUpstreams('customers', (hosts) => {
       customersHosts = hosts;
       callback(hosts);
     });
@@ -28,43 +26,42 @@ var getCustomersHosts = function(force, callback) {
 // with the merged data.
 app.get('/', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
-  getCustomersHosts(false, function(hosts) {
-    salesData.getData(function(data) {
-      if (hosts.length == 0) {
+  getCustomersHosts(false, (hosts) => {
+    SalesData.getData((data) => {
+      if (!hosts.length) {
         // if no upstreams are available we'll respond without
         // trying to query them.
         sendData(res, data,
                  'No data available.',
                  'No data available.');
       } else {
-        getCustomerData(hosts, function(parsed) {
-          sendData(res, data, parsed);
+        getCustomerData(hosts, (customers) => {
+          sendData(res, data, customers);
         });
       }
     });
   });
 });
 
-var getCustomerData = function(customerHosts, callback) {
+const getCustomerData = function (customerHosts, callback) {
   // in a real production application we'd want a more robust
   // load-balancing algo but this avoids managing state by
   // picking at random
-  var host = customerHosts[Math.floor(Math.random() * customerHosts.length)];
-  http.get({
+  const host = customerHosts[Math.floor(Math.random() * customerHosts.length)];
+  Http.get({
     host: host.address,
     port: host.port,
     path: '/data'
-  }, function(response) {
-    var body = '';
-    response.on('data', function(d) { body += d; });
-    response.on('end', function() {
-      var parsed = JSON.parse(body);
-      callback(parsed);
+  }, (response) => {
+    let body = '';
+    response.on('data', (data) => { body += data; });
+    response.on('end', () => {
+      callback(JSON.parse(body));
     });
   });
 }
 
-var sendData = function(res, salesData, customers) {
+const sendData = function (res, salesData, customers) {
   const resp = Object.keys(salesData).map((rep) => {
     const salesPerson = salesData[rep];
     const customer = customers.find((customer) => {
@@ -87,7 +84,7 @@ var sendData = function(res, salesData, customers) {
 // about without querying any other service.
 app.get('/data', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
-  salesData.getData(function (data) { res.send(data) });
+  SalesData.getData((data) => { res.send(data) });
 });
 
 process.on('SIGHUP', function () {
@@ -95,14 +92,14 @@ process.on('SIGHUP', function () {
   getCustomersHosts(true, function(hosts) {
     if (hosts.length > 0) {
       let msg = 'Updated customers hosts: ';
-      for (var i = 0; i < hosts.length; i++) {
-        msg += ' ' + hosts[i]['address'] + ':' + hosts[i]['port'];
+      for (let i = 0; i < hosts.length; i++) {
+        msg += ` ${hosts[i]['address']}:${hosts[i]['port']}`;
       }
       console.log(msg);
     }
   });
 });
 
-app.listen(3000, function () {
+app.listen(3000, () => {
   console.log('Running Sales app on port 3000');
 });
