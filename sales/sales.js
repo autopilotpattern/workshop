@@ -1,3 +1,5 @@
+'use strict';
+
 var express = require('express');
 var http = require('http');
 var os = require('os');
@@ -14,8 +16,8 @@ var getCustomersHosts = function(force, callback) {
   if (customersHosts.length != 0 && !force) {
     callback(customersHosts);
   } else {
-    consul.getUpstreams("customers", function(hosts) {
-      customerHosts = hosts;
+    consul.getUpstreams('customers', function(hosts) {
+      customersHosts = hosts;
       callback(hosts);
     });
   }
@@ -27,13 +29,13 @@ var getCustomersHosts = function(force, callback) {
 app.get('/', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
   getCustomersHosts(false, function(hosts) {
-    data = salesData.getData(function(data) {
+    salesData.getData(function(data) {
       if (hosts.length == 0) {
         // if no upstreams are available we'll respond without
         // trying to query them.
         sendData(res, data,
-                 "No data available.",
-                 "No data available.");
+                 'No data available.',
+                 'No data available.');
       } else {
         getCustomerData(hosts, function(parsed) {
           sendData(res, data, parsed);
@@ -49,8 +51,8 @@ var getCustomerData = function(customerHosts, callback) {
   // picking at random
   var host = customerHosts[Math.floor(Math.random() * customerHosts.length)];
   http.get({
-    host: host["address"],
-    port: host["port"],
+    host: host.address,
+    port: host.port,
     path: '/data'
   }, function(response) {
     var body = '';
@@ -62,15 +64,22 @@ var getCustomerData = function(customerHosts, callback) {
   });
 }
 
-var sendData = function(res, salesData, parsed) {
-  resp = []
-  for (var rep in salesData) {
-    resp.push({"rep": rep,
-               "client": salesData[rep]["client"],
-               "phone": salesData[rep]["phone"],
-               "territory": parsed[salesData[rep]["client"]]["location"],
-               "source": parsed[salesData[rep]["client"]]["source"]});
-  }
+var sendData = function(res, salesData, customers) {
+  const resp = Object.keys(salesData).map((rep) => {
+    const salesPerson = salesData[rep];
+    const customer = customers.find((customer) => {
+      return customer.rep === rep;
+    });
+
+    return {
+      rep: rep,
+      client: salesPerson.client,
+      phone: salesPerson.phone,
+      territory: customer.location,
+      source: salesPerson.source
+    };
+  });
+
   res.send(resp);
 }
 
@@ -85,9 +94,9 @@ process.on('SIGHUP', function () {
   console.log('Received SIGHUP');
   getCustomersHosts(true, function(hosts) {
     if (hosts.length > 0) {
-      msg = "Updated customers hosts: ";
+      let msg = 'Updated customers hosts: ';
       for (var i = 0; i < hosts.length; i++) {
-        msg += " " + hosts[i]["address"] + ":" + hosts[i]["port"];
+        msg += ' ' + hosts[i]['address'] + ':' + hosts[i]['port'];
       }
       console.log(msg);
     }

@@ -7,9 +7,6 @@ RUN apk update && apk add \
     curl \
     && rm -rf /var/cache/apk/*
 
-# install the Express.js dependency
-COPY package.json /opt/customers/
-RUN cd /opt/customers && npm install
 
 # get ContainerPilot release
 ENV CONTAINERPILOT_VERSION 2.4.1
@@ -21,7 +18,9 @@ RUN export CP_SHA1=198d96c8d7bfafb1ab6df96653c29701510b833c \
     && rm /tmp/containerpilot.tar.gz
 
 # add our application
+RUN mkdir -p /opt/customers/lib
 COPY customers.js /opt/customers/
+COPY lib/ /opt/customers/lib/
 
 # add ContainerPilot configuration and scripts
 COPY reload.sh /usr/local/bin/reload.sh
