@@ -36,8 +36,6 @@ customers:
     mem_limit: 128m
     expose:
       - 4000
-    ports:
-      - 4000:4000
     restart: always
 
 # service discovery tier
