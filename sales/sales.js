@@ -1,9 +1,9 @@
 'use strict';
 
-const Http = require('http');
 const Consulite = require('consulite');
 const Express = require('express');
-const SalesData = require('./lib/data');
+const Customers = require('./lib/customers');
+const Data = require('./lib/data');
 
 const app = Express();
 
@@ -19,7 +19,7 @@ app.get('/', function (req, res) {
       console.error(err);
     }
 
-    SalesData.getData((data) => {
+    Data.getData((data) => {
       if (!host) {
         // if no upstreams are available we'll respond without
         // trying to query them.
@@ -28,26 +28,12 @@ app.get('/', function (req, res) {
                  'No data available.');
       }
 
-      getCustomerData(host, (customers) => {
+      Customers.get(host, (err, customers) => {
         sendData(res, data, customers);
       });
     });
   });
 });
-
-const getCustomerData = function (host, callback) {
-  Http.get({
-    host: host.address,
-    port: host.port,
-    path: '/data'
-  }, (response) => {
-    let body = '';
-    response.on('data', (data) => { body += data; });
-    response.on('end', () => {
-      callback(JSON.parse(body));
-    });
-  });
-}
 
 const sendData = function (res, salesData, customers) {
   const resp = Object.keys(salesData).map((rep) => {
@@ -72,7 +58,7 @@ const sendData = function (res, salesData, customers) {
 // about without querying any other service.
 app.get('/data', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
-  SalesData.getData((data) => { res.send(data) });
+  Data.getData((data) => { res.send(data) });
 });
 
 process.on('SIGHUP', function () {
