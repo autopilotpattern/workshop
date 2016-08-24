@@ -7,7 +7,7 @@ RUN apk update && apk add \
     curl \
     && rm -rf /var/cache/apk/*
 
-# install the Express.js dependency
+# install all dependencies
 COPY package.json /opt/sales/
 RUN cd /opt/sales && npm install
 

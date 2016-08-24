@@ -2,7 +2,7 @@
 
 
 const Os = require('os');
-const Consul = require('./consul');
+const Consulite = require('consulite');
 const MySql = require('mysql');
 
 const user = process.env.MYSQL_USER;
@@ -55,10 +55,10 @@ process.on('SIGHUP', function () {
 
 const loadPool = function (callback) {
   const thisCluster = MySql.createPoolCluster();
-  Consul.getUpstreams('mysql', (hosts) => {
+  Consulite.refreshService('mysql', (err, hosts) => {
     populatePoolCluster(thisCluster, hosts, 'REPLICA');
-    Consul.getUpstreams('mysql-primary', (hosts) => {
-      populatePoolCluster(thisCluster, hosts, 'PRIMARY');
+    Consulite.refreshService('mysql-primary', (err, primaryHosts) => {
+      populatePoolCluster(thisCluster, primaryHosts, 'PRIMARY');
       poolCluster = thisCluster;
       callback();
     });

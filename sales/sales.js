@@ -1,53 +1,41 @@
 'use strict';
 
-const Express = require('express');
 const Http = require('http');
+const Consulite = require('consulite');
+const Express = require('express');
 const SalesData = require('./lib/data');
-const Consul = require('./lib/consul');
 
 const app = Express();
-let customersHosts = [];
 
-// Get the list of upstream hosts for the Customers service
-// and cache them for the next call.
-const getCustomersHosts = function (force, callback) {
-  if (customersHosts.length && !force) {
-    callback(customersHosts);
-  } else {
-    Consul.getUpstreams('customers', (hosts) => {
-      customersHosts = hosts;
-      callback(hosts);
-    });
-  }
-}
 
 // The root route queries the Customers microservice for information about the
 // customer associated with each sales rep, and then returns a JSON response
 // with the merged data.
 app.get('/', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
-  getCustomersHosts(false, (hosts) => {
+  Consulite.getService('customers', (err, host) => {
+    // Either a connection issue or no host was found
+    if (err) {
+      console.error(err);
+    }
+
     SalesData.getData((data) => {
-      if (!hosts.length) {
+      if (!host) {
         // if no upstreams are available we'll respond without
         // trying to query them.
-        sendData(res, data,
+        return sendData(res, data,
                  'No data available.',
                  'No data available.');
-      } else {
-        getCustomerData(hosts, (customers) => {
-          sendData(res, data, customers);
-        });
       }
+
+      getCustomerData(host, (customers) => {
+        sendData(res, data, customers);
+      });
     });
   });
 });
 
-const getCustomerData = function (customerHosts, callback) {
-  // in a real production application we'd want a more robust
-  // load-balancing algo but this avoids managing state by
-  // picking at random
-  const host = customerHosts[Math.floor(Math.random() * customerHosts.length)];
+const getCustomerData = function (host, callback) {
   Http.get({
     host: host.address,
     port: host.port,
@@ -72,7 +60,7 @@ const sendData = function (res, salesData, customers) {
       rep: rep,
       client: salesPerson.client,
       phone: salesPerson.phone,
-      territory: customer.location,
+      territory: customer ? customer.location : 'Not Found',
       source: salesPerson.source
     };
   });
@@ -89,8 +77,12 @@ app.get('/data', function (req, res) {
 
 process.on('SIGHUP', function () {
   console.log('Received SIGHUP');
-  getCustomersHosts(true, function(hosts) {
-    if (hosts.length > 0) {
+  Consulite.refreshService('customers', function (err, hosts) {
+    if (err) {
+      console.error(err);
+    }
+
+    if (hosts && hosts.length) {
       let msg = 'Updated customers hosts: ';
       for (let i = 0; i < hosts.length; i++) {
         msg += ` ${hosts[i]['address']}:${hosts[i]['port']}`;

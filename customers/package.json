@@ -6,5 +6,7 @@
   "scripts": {},
   "author": "Tim Gross, Joyent",
   "license": "Mozilla Public License 2.0",
-  "dependencies": {}
+  "dependencies": {
+    "consulite": "1.x.x"
+  }
 }

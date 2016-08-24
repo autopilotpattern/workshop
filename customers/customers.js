@@ -1,15 +1,19 @@
 'use strict';
 
 const Http = require('http');
-const Consul = require('./lib/consul');
+const Consulite = require('consulite');
 const Data = require('./lib/data');
 const Sales = require('./lib/sales');
 
 
 const getRoot = function (req, res) {
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  Consul.getUpstreams(false, (salesHosts) => {
-    if (!salesHosts || !salesHosts.length) {
+  Consulite.getService('sales', (err, service) => {
+    if (err) {
+      console.error(err);
+    }
+
+    if (!service) {
       const body = [];
       for (let company in Data) {
         body.push({
@@ -23,8 +27,7 @@ const getRoot = function (req, res) {
       return res.end(JSON.stringify(body));
     }
 
-    const host = salesHosts[Math.floor(Math.random() * salesHosts.length)];
-    Sales.get(host, (err, body) => {
+    Sales.get(service, (err, body) => {
       return res.end(JSON.stringify(body));
     });
   });
@@ -49,11 +52,14 @@ const server = Http.createServer((req, res) => {
 
 process.on('SIGHUP', () => {
   console.log('Received SIGHUP');
-  Consul.getUpstreams(true, (hosts) => {
-    let msg = 'Updated upstreamHosts: ';
-    for (var i = 0; i < hosts.length; i++) {
-      msg += ` ${hosts[i]['address']}:${hosts[i]['port']}`;
+  Consulite.refreshService('sales', (err, hosts) => {
+    if (err) {
+      return console.error(err);
     }
+
+    let msg = 'Updated upstreamHosts: ' + hosts.map((host) => {
+      return `${host.address}:${host.port}`;
+    }).join('\n');
     console.log(msg);
   });
 });
