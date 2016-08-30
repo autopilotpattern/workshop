@@ -38,7 +38,7 @@ app.get('/', function (req, res) {
 const sendData = function (res, salesData, customers) {
   const resp = Object.keys(salesData).map((rep) => {
     const salesPerson = salesData[rep];
-    const customer = customers.find((customer) => {
+    const customer = (customers || []).find((customer) => {
       return customer.rep === rep;
     });
 
