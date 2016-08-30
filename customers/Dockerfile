@@ -21,6 +21,7 @@ RUN export CP_SHA1=198d96c8d7bfafb1ab6df96653c29701510b833c \
     && rm /tmp/containerpilot.tar.gz
 
 # add our application
+COPY containerpilot.json /opt/customers/
 COPY customers.js /opt/customers/
 COPY lib/ /opt/customers/lib/
 

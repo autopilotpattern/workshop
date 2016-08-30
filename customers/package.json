@@ -7,6 +7,6 @@
   "author": "Tim Gross, Joyent",
   "license": "Mozilla Public License 2.0",
   "dependencies": {
-    "consulite": "1.x.x"
+    "piloted": "1.x.x"
   }
 }
