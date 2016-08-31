@@ -1,3 +1,5 @@
 node_modules/
 *.pyc
 venv/
+.DS_Store
+npm-debug.log

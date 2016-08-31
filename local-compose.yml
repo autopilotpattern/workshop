@@ -19,6 +19,9 @@ sales:
     build: sales/
     links:
       - consul
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     mem_limit: 128m
     expose:
       - 3000
@@ -33,6 +36,9 @@ customers:
     build: customers/
     links:
       - consul
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     mem_limit: 128m
     expose:
       - 4000

@@ -1,109 +1,56 @@
-var express = require('express');
-var http = require('http');
-var os = require('os');
+'use strict';
 
-var app = express();
-var upstreamHosts = [];
+const Http = require('http');
+const Piloted = require('piloted');
+const ContainerPilot = require('./containerpilot.json');
+const Data = require('./lib/data');
+const Sales = require('./lib/sales');
 
-// the data contains the hostname so that we can see upstreams change
-// in the demonstration app
-var sourceName = "[customers:" + os.hostname() + "]";
-var data = {
-    "ACME Corporation": {"location": "Atlanta", "source": sourceName},
-    "Vandelay Industries": {"location": "Boston", "source": sourceName},
-    "Hooli": {"location": "Chicago", "source": sourceName},
-    "Initech": {"location": "Denver", "source": sourceName}
-};
 
-// query Consul for the upstream services
-var getUpstreams = function(force, callback) {
-    if (upstreamHosts.length != 0 && !force) {
-        callback(upstreamHosts);
-    } else {
-        http.get({
-            host: 'consul',
-            port: 8500,
-            path: '/v1/health/service/sales?passing'
-        }, function(response) {
-            var body = '';
-            response.on('data', function(d) { body += d; });
-            response.on('end', function() {
-                var parsed = JSON.parse(body);
-                hosts = []
-                for (var i = 0; i < parsed.length; i++) {
-                    hosts.push({address: parsed[i].Service.Address,
-                                port: parsed[i].Service.Port});
-                }
-                upstreamHosts = hosts; // cache the result
-                callback(hosts);
-            });
-        });
+const getRoot = function (req, res) {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+
+  const service = Piloted('sales');
+  if (!service) {
+    const body = [];
+    for (let company in Data) {
+      body.push({
+        company: company,
+        location: Data[company]['location'],
+        rep: 'No data available.',
+        source: 'No data available.'
+      });
     }
-}
 
-// The root route queries the Sales microservice for information about the
-// sales reps associated with each customer, and then returns a JSON response
-// with the merged data.
-app.get('/', function (req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    getUpstreams(false, function(salesHosts) {
-        if (salesHosts.length == 0) {
-            // if no upstreams are available we'll respond without
-            // trying to query them.
-            resp = []
-            for (var company in data) {
-                resp.push({"company": company,
-                           "location": data[company]["location"],
-                           "rep": "No data available.",
-                           "source": "No data available."});
-            }
-            res.send(resp);
-        } else {
-            // in a real production application we'd want a more robust
-            // load-balancing algo but this avoids managing state
-            var host = salesHosts[Math.floor(Math.random() * salesHosts.length)];
-            http.get({
-                host: host["address"],
-                port: host["port"],
-                path: '/data'
-            }, function(response) {
-                var body = '';
-                response.on('data', function(d) { body += d; });
-                response.on('end', function() {
-                    var parsed = JSON.parse(body);
-                    resp = []
-                    for (var rep in parsed) {
-                        company = parsed[rep]["client"];
-                        resp.push({"company": company,
-                                   "location": data[company]["location"],
-                                   "rep": rep,
-                                   "source": parsed[rep]["source"]});
-                    }
-                    res.send(resp);
-                });
-            });
-        }
-    });
-});
+    return res.end(JSON.stringify(body));
+  }
+
+  Sales.get(service, (err, body) => {
+    return res.end(JSON.stringify(body));
+  });
+};
 
 // The /data route just sends the data this microservice knows
 // about without querying any other service.
-app.get('/data', function (req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(data);
+const getData = function (req, res) {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(Data));
+};
+
+const server = Http.createServer((req, res) => {
+  if (req.path === '/data') {
+    return getData(req, res);
+  }
+
+  return getRoot(req, res);
 });
 
-process.on('SIGHUP', function () {
-    console.log('Received SIGHUP');
-    getUpstreams(true, function(hosts) {
-        msg = "Updated upstreamHosts: ";
-        for (var i = 0; i < hosts.length; i++) {
-            msg += " " + hosts[i]["address"] + ":" + hosts[i]["port"];
-        }
-        console.log(msg);
-    });
-});
+Piloted.config(ContainerPilot, (err) => {
+  if (err) {
+    console.error(err);
+  }
 
-app.listen(4000, function () {
+  server.listen(4000, () => {
     console.log('Running Customers app on port 4000');
+  });
 });

@@ -17,6 +17,9 @@ sales:
     image: autopilotpattern/workshop-sales
     links:
       - consul
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     mem_limit: 128m
     ports:
       - 3000
@@ -29,6 +32,9 @@ sales:
 # the customers microservice
 customers:
     image: autopilotpattern/workshop-customers
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     links:
       - consul
     mem_limit: 128m

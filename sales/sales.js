@@ -1,76 +1,56 @@
-var express = require('express');
-var http = require('http');
-var os = require('os');
+'use strict';
 
-var salesData = require('./data');
-var consul = require('./consul');
+const Consulite = require('consulite');
+const Express = require('express');
+const Customers = require('./lib/customers');
+const Data = require('./lib/data');
 
-var app = express();
-var customersHosts = [];
+const app = Express();
 
-// Get the list of upstream hosts for the Customers service
-// and cache them for the next call.
-var getCustomersHosts = function(force, callback) {
-  if (customersHosts.length != 0 && !force) {
-    callback(customersHosts);
-  } else {
-    consul.getUpstreams("customers", function(hosts) {
-      customerHosts = hosts;
-      callback(hosts);
-    });
-  }
-}
 
 // The root route queries the Customers microservice for information about the
 // customer associated with each sales rep, and then returns a JSON response
 // with the merged data.
 app.get('/', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
-  getCustomersHosts(false, function(hosts) {
-    data = salesData.getData(function(data) {
-      if (hosts.length == 0) {
+  Consulite.getService('customers', (err, host) => {
+    // Either a connection issue or no host was found
+    if (err) {
+      console.error(err);
+    }
+
+    Data.getData((data) => {
+      if (!host) {
         // if no upstreams are available we'll respond without
         // trying to query them.
-        sendData(res, data,
-                 "No data available.",
-                 "No data available.");
-      } else {
-        getCustomerData(hosts, function(parsed) {
-          sendData(res, data, parsed);
-        });
+        return sendData(res, data,
+                 'No data available.',
+                 'No data available.');
       }
+
+      Customers.get(host, (err, customers) => {
+        sendData(res, data, customers);
+      });
     });
   });
 });
 
-var getCustomerData = function(customerHosts, callback) {
-  // in a real production application we'd want a more robust
-  // load-balancing algo but this avoids managing state by
-  // picking at random
-  var host = customerHosts[Math.floor(Math.random() * customerHosts.length)];
-  http.get({
-    host: host["address"],
-    port: host["port"],
-    path: '/data'
-  }, function(response) {
-    var body = '';
-    response.on('data', function(d) { body += d; });
-    response.on('end', function() {
-      var parsed = JSON.parse(body);
-      callback(parsed);
+const sendData = function (res, salesData, customers) {
+  const resp = Object.keys(salesData).map((rep) => {
+    const salesPerson = salesData[rep];
+    const customer = (customers || []).find((customer) => {
+      return customer.rep === rep;
     });
-  });
-}
 
-var sendData = function(res, salesData, parsed) {
-  resp = []
-  for (var rep in salesData) {
-    resp.push({"rep": rep,
-               "client": salesData[rep]["client"],
-               "phone": salesData[rep]["phone"],
-               "territory": parsed[salesData[rep]["client"]]["location"],
-               "source": parsed[salesData[rep]["client"]]["source"]});
-  }
+    return {
+      rep: rep,
+      client: salesPerson.client,
+      phone: salesPerson.phone,
+      territory: customer ? customer.location : 'Not Found',
+      source: salesPerson.source
+    };
+  });
+
   res.send(resp);
 }
 
@@ -78,22 +58,26 @@ var sendData = function(res, salesData, parsed) {
 // about without querying any other service.
 app.get('/data', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
-  salesData.getData(function (data) { res.send(data) });
+  Data.getData((data) => { res.send(data) });
 });
 
 process.on('SIGHUP', function () {
   console.log('Received SIGHUP');
-  getCustomersHosts(true, function(hosts) {
-    if (hosts.length > 0) {
-      msg = "Updated customers hosts: ";
-      for (var i = 0; i < hosts.length; i++) {
-        msg += " " + hosts[i]["address"] + ":" + hosts[i]["port"];
+  Consulite.refreshService('customers', function (err, hosts) {
+    if (err) {
+      console.error(err);
+    }
+
+    if (hosts && hosts.length) {
+      let msg = 'Updated customers hosts: ';
+      for (let i = 0; i < hosts.length; i++) {
+        msg += ` ${hosts[i]['address']}:${hosts[i]['port']}`;
       }
       console.log(msg);
     }
   });
 });
 
-app.listen(3000, function () {
+app.listen(3000, () => {
   console.log('Running Sales app on port 3000');
 });

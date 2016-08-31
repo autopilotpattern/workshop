@@ -6,7 +6,7 @@ Applications on Autopilot
 
 Microservices and Docker go together like chocolate and peanut butter: microservice architectures provide organizations a tool to manage complexity of the development process, and application containers provide a new means to manage the dependencies and deployment of those microservices. But deploying and connecting those services together is still a challenge because it forces developers to design for operationalization.
 
-The Autopilot Pattern is a powerful design pattern to solving this problem. By pushing the responsibility for understanding startup, shutdown, scaling, and recovery from failure into the application, we can build intelligent architectures that minimize human intervention in operation. But we can't rewrite all our applications at once, so we need a way to build application containers that can knit together legacy and greenfield applications alike.
+The [Autopilot Pattern](http://autopilotpattern.io/) is a powerful design pattern to solving this problem. By pushing the responsibility for understanding startup, shutdown, scaling, and recovery from failure into the application, we can build intelligent architectures that minimize human intervention in operation. But we can't rewrite all our applications at once, so we need a way to build application containers that can knit together legacy and greenfield applications alike.
 
 This project demonstrates this design pattern by applying it to a simple microservices deployment using Nginx and two Node applications.
 
