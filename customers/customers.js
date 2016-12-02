@@ -2,7 +2,7 @@
 
 const Http = require('http');
 const Piloted = require('piloted');
-const ContainerPilot = require('./containerpilot.json');
+const ContainerPilot = require(process.env.CONTAINERPILOT.replace('file://', ''));
 const Data = require('./lib/data');
 const Sales = require('./lib/sales');
 
